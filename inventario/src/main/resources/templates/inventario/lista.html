@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Inventario</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		<div class="container-fluid">
+			<span class="navbar-brand">Sistema de Inventario</span>
+
+			<div class="d-flex">
+				<a class="btn btn-outline-light" th:href="@{/dashboard}">Volver</a>
+				<br>
+				<a class="btn btn-outline-light" th:href="@{/auth/logout}">Cerrar sesión</a>
+			</div>
+		</div>
+	</nav>
+	<div class="container py-5">
+		<h1 class="mb-4">Gestión de Inventario</h1>
+
+		<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+			<form th:action="@{/inventario}" method="get" class="d-flex mb-2">
+				<input type="text" name="busqueda" class="form-control me-2" placeholder="Buscar producto...">
+				<button type="submit" class="btn btn-primary">Buscar</button>
+			</form>
+
+			<div sec:authorize="hasAuthority('agregar_producto')" class="mb-2">
+				<a th:href="@{/inventario/nuevo}" class="btn btn-success">+ Nuevo Producto</a>
+			</div>
+		</div>
+
+		<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+		<div class="table-responsive">
+			<table class="table table-bordered table-hover align-middle">
+				<thead class="table-dark text-center">
+					<tr>
+						<th>ID</th>
+						<th>Nombre</th>
+						<th>Cantidad</th>
+						<th>Estado</th>
+						<th sec:authorize="hasAuthority('aumentar_inventario')">Entrada</th>
+						<th sec:authorize="hasAuthority('dar_baja_producto')">Acción</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="producto : ${productos}">
+						<td th:text="${producto.idProducto}"></td>
+						<td th:text="${producto.nombre}"></td>
+						<td th:text="${producto.cantidad}"></td>
+						<td>
+							<span class="badge"
+								th:classappend="${producto.estatus == 1} ? 'bg-success' : 'bg-secondary'"
+								th:text="${producto.estatus == 1} ? 'Activo' : 'Inactivo'">
+							</span>
+						</td>
+						<td sec:authorize="hasAuthority('aumentar_inventario')">
+							<form th:action="@{/inventario/aumentar/{id}(id=${producto.idProducto})}" method="post"
+								class="d-flex">
+								<input type="number" name="cantidad" min="1" required class="form-control me-2"
+									style="width: 100px;">
+								<button type="submit" class="btn btn-outline-primary btn-sm">+ Aumentar</button>
+							</form>
+						</td>
+						<td sec:authorize="hasAuthority('dar_baja_producto')">
+							<form th:action="@{/inventario/cambiar-estatus/{id}(id=${producto.idProducto})}"
+								method="post">
+								<input type="hidden" name="activo" th:value="${producto.estatus == 1} ? false : true">
+								<button type="submit" th:text="${producto.estatus == 1} ? 'Dar de Baja' : 'Activar'"
+									th:class="${producto.estatus == 1} ? 'btn btn-warning btn-sm' : 'btn btn-success btn-sm'">
+								</button>
+							</form>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
